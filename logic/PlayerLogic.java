@@ -1,13 +1,18 @@
 package logic;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.TreeSet;
 
 import javax.imageio.ImageIO;
-
+import javax.sound.sampled.AudioFileFormat.Type;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -47,13 +52,11 @@ import renderer.Images;
  * 
  * </br></br>Bugs:
  * <ul>
- *  <li> 2022-2-9: The program runs excellently in Eclipse, but fails to load the mp3 codec
- *  	when getAudioInputStream is called in an executable jar. There seems
- *  	to be many problems with this library, as problems concerning it
- *  	in executable jars is very common and with many different solutions working
- *  	and not working. It is also evident to perhaps not have been fully completed 
- *  	under the hood. I am leaving the problem here as I feel I have more
- *  	necessary things to do.
+ *  <li> 2022-2-9: The program runs excellently in Eclipse, but fails to create 
+ *  	the AudioInputStream when getAudioInputStream is called in an executable jar 
+ *  	and just stops the method. It wouldn't play a .wav file either, nor would
+ *  	play in creating a separate URL of BufferedInputStream into AudioInputStream.
+ *  	I am leaving the problem here as I feel I have more necessary things to do.
  *  </ul>
  * 
  * @version 2022-2-9
@@ -70,12 +73,17 @@ public class PlayerLogic {
 	/** The current song of the player. **/
 	private static Song currentSong;
 	
-	/** Keeps track of if the player is playing. **/
-	private static boolean playing;
-	/** Keeps track of if the track was completely stopped. */
-	private static boolean wasStopped;
-	/** Keeps track of if the track was paused in the middle. */
-	private static boolean wasPaused;
+	/** Keeps track of if the player is playing, paused, or stopped. */
+	private static int playerState;
+	
+	/** The int value for the player to be in a playing state. */
+	public static final int PLAYING = 1;
+	
+	/** The int value for the player to be in a paused state. */
+	public static final int PAUSED = 2;
+	
+	/** The int value for the player to be in a stopped state. */
+	public static final int STOPPED = 3;
 	
 	/** Keeps track of how long the track has been playing in seconds. */
 	private static double currentTrackSecs;
@@ -88,36 +96,37 @@ public class PlayerLogic {
 		
 		display = Display.createDisplayInstance();
 		
-		// Puts a song on the player, but doesn't play it
-		Song[] searchSongs = searchForSongs("pull up nobigdyl.", 1);
-		display.placeSongOnPlayer( 
-				(currentSong = searchSongs[0]).getDeepCopy());
+		// Loads a song on the player, but doesn't play it
+		currentSong = searchForSongs("battle scars", 1)[0];
+		display.placeSongOnPlayer(currentSong);
 	}
 	
-	/** Called when the user presses enter in searchBar in searching for a track.
+	/** 
+	 * Called when the user presses enter in searchBar in searching for a track.
 	 * 
 	 * @param search The keywords to search for that are sent to the Spotify API. 
 	 * */
 	public static void SearchEnter (String search) {
 		
-		if (PlayerLogic.playing) {
-			stopPreview();
-		}
-		if (wasPaused) {
-			wasPaused = false;
-			display.switchPlayPauseButton(false);
+		// Resets player by stopping if not already
+		switch (playerState) {
+			case PAUSED:
+			case PLAYING:
+				stopPreview();
 		}
 		
 		Song[] searchSongs = searchForSongs(search, 1);
 		
+		// came back with valid response
 		if (searchSongs != null) {
-			PlayerLogic.currentSong = searchSongs[0];
+			currentSong = searchSongs[0];
 			display.switchPlayPauseButton(false);
 			playPreview();
 		}
 	}
 	
-	/** Creates the query sent to the Spotify API and returns an Array of type 
+	/** 
+	 * Creates the query sent to the Spotify API and returns an Array of type 
 	 * <i>Song</i>.
 	 * 
 	 * @param search The keywords of the query.
@@ -143,7 +152,7 @@ public class PlayerLogic {
 		    		"&type=" + type +
 		    		"&limit=" + lim;
 			
-			//gets response from Spotify
+			// Gets response from Spotify
 	        HttpResponse<JsonNode> response = null;
 			try {
 				response = Unirest.get(host + query)
@@ -154,7 +163,7 @@ public class PlayerLogic {
 				return songs;
 			}
 				
-			//Creates quickly readable string of response string with Gson library
+			// Creates easily readable string of response with Gson library
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			JsonElement je = new JsonParser().parse(response.getBody().toString());
 			String AuthJsonReturn = gson.toJson(je);
@@ -165,8 +174,11 @@ public class PlayerLogic {
 					.getJSONObject("tracks")
 					.getJSONArray("items").length() != 0) {
 				
-				// for every song returned from the Spotify API, stores details in 
-				// the JSONArray response of the song in songs[]
+				/*
+				 *  for every song returned from the Spotify API, stores 
+				 *  certain song data of the JSONArray response in a 
+				 *  <i>Song</i> object in array songs[]
+				 * */
 				for (int searchidx = 0; searchidx < limit; searchidx++) {
 					
 					// (1) Adds name of track to songs[]
@@ -181,14 +193,16 @@ public class PlayerLogic {
 								.getString("name"));
 						
 					} catch (JSONException e) {
+						
 						// Prints error and returned response to find invalid parsing
+						// in all try/catches
 						e.printStackTrace();
 						System.out.println("\n" + AuthJsonReturn + "\nCouldn't "
 								+ "find name in the returned response for songs["
 								 + searchidx + "]\n");
 					}
 					
-					// (2) Artists, by first getting the JSONArray
+					// (2) Adds artists, by first getting the JSONArray, 
 					try {
 						JSONArray artistsJsonArray = ( 
 									( (JSONObject) response.getBody()
@@ -199,7 +213,8 @@ public class PlayerLogic {
 									
 									.getJSONArray("artists"));
 						
-						//loops through JSONArray to get the JSONObject element "name"
+						// (2b) Loops through JSONArray to get the 
+						// JSONObject elements, "name"
 						TreeSet<String> artists = new TreeSet<String>();
 						for (Object artist : artistsJsonArray) {
 							artists.add( ((JSONObject) artist).getString("name") );
@@ -208,14 +223,14 @@ public class PlayerLogic {
 						songs[searchidx].setArtists(artists);
 						
 					} catch (JSONException e) {
-						// Prints error and returned response to find invalid parsing
+
 						e.printStackTrace();
 						System.out.println("\n" + AuthJsonReturn + "\nCouldn't "
 								+ "find artists in the returned response for songs["
 								 + searchidx + "]\n");
 					}
 					
-					// (3) Adds the ID on Spotify servers to songs[]
+					// (3) Adds ID on Spotify servers to songs[]
 					try {
 						songs[searchidx].setID( 
 								( (JSONObject) response.getBody()
@@ -227,14 +242,14 @@ public class PlayerLogic {
 								.getString("id"));
 						
 					} catch (JSONException e) {
-						// Prints error and returned response to find invalid parsing
+
 						e.printStackTrace();
 						System.out.println("\n" + AuthJsonReturn + "\nCouldn't "
 								+ "find ID in the returned response for songs["
 								 + searchidx + "]\n");
 					}
 					
-					// (4) Adds the albumURL to songs[]
+					// (4) Adds albumURL to songs[]
 					try {
 						songs[searchidx].setAlbumURL(
 								( (JSONObject)	
@@ -252,7 +267,7 @@ public class PlayerLogic {
 								.getString("url") );
 						
 					} catch (JSONException e) {
-						// Prints error and returned response to find invalid parsing
+
 						e.printStackTrace();
 						System.out.println("\n" + AuthJsonReturn + "\nCouldn't "
 								+ "find image url in the returned response for songs["
@@ -271,7 +286,7 @@ public class PlayerLogic {
 								.getString("preview_url") );
 						
 					} catch (JSONException e) {
-						// Prints error and returned response to find invalid parsing
+
 						e.printStackTrace();
 						System.out.println("\n" + AuthJsonReturn + "\nCouldn't "
 								+ "find preview url in the returned response for songs["
@@ -291,29 +306,29 @@ public class PlayerLogic {
 		return songs;
 	}
 	
-	/** Loads the albumCover of a song object from its albumURL if it hasn't already
+	/** 
+	 * Loads the albumCover of a song object from its albumURL if it hasn't already
 	 * been loaded. 
 	 * 
 	 * @param song The <i>Song</i> object to load the album cover of. 
 	 */
 	public static void loadAlbumCover(Song song) {
 		
-		if (song == null) {
-			return;
-		}
-		
-		// Checks if already loaded
-		if (song.getAlbumCover() == null &&
-				song.getAlbumURL() != null) {
+		// Checks if already loaded the album cover
+		if ( !(song == null || 
+				song.getAlbumURL() == null || 
+				song.getAlbumCover() != null) ) {
 			
 			BufferedImage albumCover = null;
 			
-			// (1) Gets the stream of the album cover from the albumURL
+			/*
+			 *  (1) Gets stream of the album cover from the albumURL
+			 *  and stores it in a BufferedImage
+			 */ 
 			try ( InputStream is = Unirest.get(song.getAlbumURL())
 						.asBinary()
 						.getRawBody() ) {
 				
-				// (2) Stores the stream in a BufferedImage
 				albumCover = ImageIO.read(is);
 				
 			} catch (IOException e) {
@@ -322,7 +337,7 @@ public class PlayerLogic {
 				e.printStackTrace();
 			}
 			
-			// (3) Scales the BufferedImage
+			// (2) Scales BufferedImage,
 			albumCover = PlayerLogic.scaleImage(albumCover, 
 					54 * Display.getAlbumCoverScale(),
 					54 * Display.getAlbumCoverScale());
@@ -332,7 +347,8 @@ public class PlayerLogic {
 		}
 	}
 
-	/** Scales an image to a size with low loss of quality using Thumbnailator Library.
+	/** 
+	 * Scales a BufferedImage to a size using Thumbnailator Library.
 	 * 
 	 * @param buffI The <i>BufferedImage</i> to scale.
 	 * @param WIDTH The width to scale to.
@@ -351,78 +367,75 @@ public class PlayerLogic {
 		return buffI;
 	}
 	
-	/** Starts playing the preview on a low priority <i>Thread</i> and places the 
+	/** 
+	 * Starts playing the preview on a low priority <i>Thread</i> and places the 
 	 * song on <b>display</b>.
 	 */
 	public synchronized static void playPreview() {
 		
 		if (currentSong == null) {
 			JOptionPane.showMessageDialog(null, "No song to play preview of.",
-        			"Debugging", 0);
+        			"Song not loaded", 0);
 			return;
 		}
 		
-		PlayerLogic.playing = true;
-		PlayerLogic.wasStopped = false;
-		
 		Thread trackThread = new Thread( () -> streamMp3(currentSong.getPreviewURL()) );
-		trackThread.setPriority(Thread.MIN_PRIORITY);
+		trackThread.setPriority(3);
 		trackThread.start();
 		
 		//places title and album artwork on the display
 		display.placeSongOnPlayer(currentSong.getDeepCopy());
 	}
 	
-	/** Stops the preview by setting booleans to their proper values, which makes
-	 * playPreview() thread finish. Additionally, resets track values
+	/** 
+	 * Stops preview by setting playerState to STOPPED, which makes
+	 * playPreview() thread finish. Additionally, resets track value
 	 * and updates the GUI.
 	 */
 	public static void stopPreview () {
-		PlayerLogic.playing = false;
-		PlayerLogic.wasPaused = false;
-		PlayerLogic.wasStopped = true;
+		PlayerLogic.playerState = STOPPED;
+		
 		currentTrackSecs = 0.0;
 		display.updateTrackBar(0, 0);
 		
 		System.out.println("Stopped!");
 	}
 	
-	/** Pauses the preview by setting proper boolean values which makes
-	 * prayPreview() thread finish.
+	/** 
+	 * Pauses preview by setting the playerState to PAUSED, which makes
+	 * playPreview() thread finish.
 	 */
 	public static void pausePreview () {
-		PlayerLogic.playing = false;
-		PlayerLogic.wasPaused = true;
+		playerState = PAUSED;
 		
 		System.out.println("Paused!");
 	}
     
-	/** Returns a boolean of whether player is set to play.
+	/** 
+	 * Returns the int value of the player state, with public constants of
+	 * the class <i>PLAYING</i> = 1, <i>PAUSED</i> = 2, and <i>STOPPED = 3</i>.
 	 * 
-	 * @return the state of playing.
+	 * @return the state of the player.
 	 */
-    public static boolean isPlaying () {
-    	return PlayerLogic.playing;
-    }
-    /** Sets whether the player is ready to play or not.
-     * 
-     * @param playing The state of playing.
-     */
-    static void setPlaying (boolean playing) {
-    	PlayerLogic.playing = playing;
+    public static int getPlayerState () {
+    	return PlayerLogic.playerState;
     }
     
     /** The current AudioInputStream of the player. */
     static private AudioInputStream in;
+    
     /** The current AudioFormat of the player. */
     static private AudioFormat outFormat;
+    
     /** The current DataLine.Info of the player. */
     static private Info info;
+    
     /** The current SourceDataLine created by <b>info</b>. */
     static private SourceDataLine line;
     
-    /** Plays the MP3 preview of the Spotify track using an extension to read
-     * MP3's with the Java Sound library.
+    /** 
+     * Plays the MP3 preview of the Spotify track with the Java Sound library
+     * using an MP3 extension from tritonus.
      * 
      * @param previewURL the previewURL of the track returned from the Spotify API.
      * @author oldo (stackoverflow.com)
@@ -430,46 +443,49 @@ public class PlayerLogic {
     public static void streamMp3(String previewURL) {
     	
         try {
-        	// (1) Closes the current SourceDataLine and AudioInputStream
-        	// if the track was stopped and no longer playing
-            if (wasStopped) {
-            	line.drain();
-            	line.stop();
-            	line.close();
-            	
-            	in.close();
-            }
         	
-        	// (2) Creates the new Audio objects of a track if player wasn't paused,
-            // which is the only case the player shouldn't create new ones
-            if (!wasPaused) {
-            	
-            	URL url = new URL(previewURL);
-            	// line where code breaks in .jar
-            	in = getAudioInputStream(url);
-            	
-		        outFormat = getOutFormat(in.getFormat());
-		        info = new Info(SourceDataLine.class, outFormat);
-		        
-		        line = (SourceDataLine) AudioSystem.getLine(info);
-		        line.open(outFormat);
-            	line.start();
-            }
-            
-            /* (3) Gets duration of the AudioInputStream (all preview tracks are 
-             30 seconds). In order to actually get the frame length, which can
-             be used to calculate duration, either the MPEGFormatFilerReader.class
-             in the mp3spi-1.9.5-1.jar Maven dependecy must be updated, or another
-             library should be selected. */
+        	// (1) Establish audio connections if stopped or first song played
+        	switch (playerState) {
+        	
+	        	// Closes current Audio objects if stopped
+	        	case STOPPED:
+	        		
+	        		line.drain();
+	            	line.stop();
+	            	line.close();
+	            	
+	            	in.close();
+	            	
+	            // Entry point for first song played 
+	        	case 0:
+	        		
+	        		URL url = new URL(previewURL);
+	        		in = getAudioInputStream(url);
+	        		
+			        outFormat = getOutFormat(in.getFormat());
+			        info = new Info(SourceDataLine.class, outFormat);
+			        line = (SourceDataLine) AudioSystem.getLine(info);
+			        
+			        line.open(outFormat);
+	            	line.start();
+        	}
+        	
+             /* 
+             (2) Gets duration of the AudioInputStream (set to 30 seconds; 
+             in order to actually get the frame length, which can be used 
+             to calculate duration, either the MPEGFormatFilerReader.class 
+             in the mp3spi-1.9.5-1.jar Maven dependecy must be updated, or 
+             another library should be selected.      
+             */
             currentSong.setDuration(30);
             
-            // checks if the current line is still valid
+            // checks if current line is still valid
             if (line != null) {
                 stream(getAudioInputStream(outFormat, in), line);
             } else {
             	JOptionPane.showMessageDialog(null, "Line was broken. Please try again.",
             			"Connection Broke", 0);
-            	wasPaused = false;
+            	playerState = STOPPED;
             }
             
         } catch (UnsupportedAudioFileException 
@@ -479,13 +495,13 @@ public class PlayerLogic {
         }
     }
  
-    /** Returns an AudioFormat object that only differs in a sampleSizeInBytes of 16
-     * (retaining sampleRate, channel, frameSize, and frameRate of <b>inFormat</b>), which is 
-     * a format that supports MP3's and OGG Vorbis'.
+    /** 
+     * Returns an AudioFormat object in a format that supports MP3's and OGG Vorbis'.
      * 
      * @param inFormat the AudioFormat object that the new one bases on.
      * @return an AudioFormat object of an MP3, WAV and OGG Vorbis.
-     * @author oldo (stackoverflow.com)*/
+     * @author oldo (stackoverflow.com)
+     * */
     private static AudioFormat getOutFormat(AudioFormat inFormat) {
         final int ch = inFormat.getChannels();
 
@@ -493,33 +509,43 @@ public class PlayerLogic {
         return new AudioFormat(PCM_SIGNED, rate, 16, ch, ch * 2, rate, false);
     }
     
-    /** Writes the newly created AudioInputStream in mp3 format to a SourceDataLine
+    /** 
+     * Writes the newly created AudioInputStream in mp3 format to a SourceDataLine
      *  received from AudioSystem.
      * 
      * @param in An AudioInputStream to receive the data from.
      * @param line The SourceDataLine to write the data to.
-     * @author oldo (stackoverflow.com)*/
+     * @author oldo (stackoverflow.com)
+     * */
     private static void stream(AudioInputStream in, SourceDataLine line) 
         throws IOException {
     	
-        final byte[] buffer = new byte[4096];
+        double startMilli = (playerState == PAUSED) ? System.currentTimeMillis() - 
+        	pausedTrackSecs * 1000 : System.currentTimeMillis();
+        
+        playerState = PLAYING;
+        
         int n;
-        double startMilli = (!wasPaused) ? System.currentTimeMillis() :
-        	System.currentTimeMillis() - pausedTrackSecs * 1000;
+        final byte[] buffer = new byte[4096];
         
         for (n = 0; n != -1; n = in.read(buffer, 0, buffer.length)) {
-        	if (playing) {
-        		line.write(buffer, 0, n);
+        	
+        	if (playerState == PLAYING) {
         		
+        		line.write(buffer, 0, n);
+        		 
         		// Calculate current track second of the preview mp3
         		currentTrackSecs = (System.currentTimeMillis() - startMilli)
         				/ 1000;
         		
+        		// Updates display
         		display.updateTrackBar(currentTrackSecs, currentSong.getDuration());
+        		
         	} else {
+        		
         		pausedTrackSecs = currentTrackSecs;
-        		playing = false;
         		break;
+        		
         	}
         }
         
