@@ -80,7 +80,7 @@ public class PlayerLogic {
 	/** Keeps track of how long the track has been playing in seconds. */
 	private static double currentTrackSecs;
 	
-	/** Keeps track of the milliseconds between starting the track
+	/** Keeps track of the seconds between starting the track
 	 * and pausing it in seconds. */
 	private static double pausedTrackSecs;
 	
