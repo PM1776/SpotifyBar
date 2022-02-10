@@ -314,7 +314,7 @@ public class PlayerLogic {
 	 */
 	public static void loadAlbumCover(Song song) {
 		
-		// Checks if already loaded the album cover
+		// Continues if album cover not already loaded
 		if ( !(song == null || 
 				song.getAlbumURL() == null || 
 				song.getAlbumCover() != null) ) {
@@ -446,17 +446,16 @@ public class PlayerLogic {
         	
         	// (1) Establish audio connections if stopped or first song played
         	switch (playerState) {
-        	
+				
 	        	// Closes current Audio objects if stopped
 	        	case STOPPED:
 	        		
-	        		line.drain();
-	            	line.stop();
-	            	line.close();
+				line.drain();
+				line.stop();
+				line.close();
+				in.close();
 	            	
-	            	in.close();
-	            	
-	            // Entry point for first song played 
+	            	// Entry point for first song played 
 	        	case 0:
 	        		
 	        		URL url = new URL(previewURL);
@@ -467,7 +466,7 @@ public class PlayerLogic {
 			        line = (SourceDataLine) AudioSystem.getLine(info);
 			        
 			        line.open(outFormat);
-	            	line.start();
+	            		line.start();
         	}
         	
              /* 
@@ -534,11 +533,11 @@ public class PlayerLogic {
         		
         		line.write(buffer, 0, n);
         		 
-        		// Calculate current track second of the preview mp3
+        		// Calculates current track second of the preview mp3
         		currentTrackSecs = (System.currentTimeMillis() - startMilli)
         				/ 1000;
         		
-        		// Updates display
+        		// Updates display with currentTrackSecs
         		display.updateTrackBar(currentTrackSecs, currentSong.getDuration());
         		
         	} else {
