@@ -1,5 +1,5 @@
 # SpotifyPreviewer
-This program searches for songs on the Spotify servers and plays the preview of the first song returned from the query.
+This program searches for songs on Spotify servers and plays the preview of the first song returned from the query.
 
 Its GUI is a draggable slim bar that always sits on top of applications and is entirely made up of created BufferedImages from the Images class, allowing them to be scaled to a
 higher resolution easily and drawn smaller with the Graphics library according to its inverted scale. Graphics can scale down about 4 times the resolution in making the image
