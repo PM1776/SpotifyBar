@@ -1,5 +1,5 @@
 # SpotifyPreviewer
-This program searches for songs from Spotify's servers and plays the preview of the best result from the query. It's main method is in PlayerLogic.java, and executable jar is SpotifyPreviewer.jar
+This program searches for songs from Spotify's servers and plays the preview of the first song from the returned query. Its main method is in PlayerLogic.java and executable jar is Spotify Previewer.jar
 
 Its GUI is a draggable, slim bar that always sits on top of applications and is entirely made up of created BufferedImages from the Images class, allowing images to be
 scaled easily to a higher resolution and drawn smaller with the Graphics library to the same scale inverted. Graphics can scale down about 4 times the resolution of an image while
