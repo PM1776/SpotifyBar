@@ -284,9 +284,14 @@ public class Display {
 		
 		// -----------------------------------------------------------------------
 		
+		/* Creates a essentially see-through panel (must be alpha 1 to be 
+		 * considered part of the JFrame) that has an Ellipse shape drawn
+		 * onto it that can determine if clicked
+		 * */
+		
+		// The Shape object that will detect the mouse click
 		closeIconShape = new Ellipse2D.Double(0, 40, 16, 16);
 		
-		// Creates a essentially see-through panel that holds the close button
 		closePanel = new JPanel () {
 			
 			@Override
@@ -297,16 +302,16 @@ public class Display {
 		        g.setColor( getBackground() );
 		        g.fillRect(0, 0, getWidth(), getHeight());
 		        
-		        // Sets up Graphics2D object
+		        // Then, (1) sets up Graphics2D object
 		        Graphics2D g2d = (Graphics2D) g;
 		        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 		        		RenderingHints.VALUE_ANTIALIAS_ON);
 		        
-		        // Then, (1) paints the ellipse shape closeIconShape
+		        // (2) Paints the ellipse shape closeIconShape
 		        g2d.setColor(Color.BLACK);
 		        g2d.fill(closeIconShape);
 		        
-		        // and (2) draws an 'X' on closeIconShape
+		        // and (3) draws an 'X' on closeIconShape
 		        g2d.setColor(Color.WHITE);
 		        g2d.setStroke(new BasicStroke(1f));
 		        int margin = 5;
@@ -337,6 +342,7 @@ public class Display {
 		
 		// -----------------------------------------------------------------------
 		
+		// Displays the closePanel when hovered over
 		anchorHoverPanel = new JPanel(null);
 		anchorHoverPanel.setBounds(8, 16, 20, 20);
 		anchorHoverPanel.setBackground(new Color(0, 0, 0, 0));
