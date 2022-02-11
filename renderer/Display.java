@@ -207,31 +207,31 @@ public class Display {
 		searchBar.setSelectionColor(Color.WHITE);
 		searchBar.setSelectedTextColor(new Color(165, 165, 165, 255));
 		searchBar.addKeyListener(new KeyAdapter() {
-	          public void keyPressed(KeyEvent e) {
+	        public void keyPressed(KeyEvent e) {
 	            //System.out.println("Pressed " + e.getKeyChar());
 	            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 	            	PlayerLogic.SearchEnter(searchBar.getText());
 	            }
 	          }
-	    });
+	    	});
 		searchBar.addMouseListener(new MouseListener() {
-	          public void mouseEntered(MouseEvent e) {
+	          	public void mouseEntered(MouseEvent e) {
 	        	  	searchBar.setBackground(new Color(255, 255, 255, 105));
-	          }
-	          public void mouseExited(MouseEvent e) {
+	          	}
+	          	public void mouseExited(MouseEvent e) {
 	        	  	searchBar.setBackground(new Color(0, 0, 0, 0));
-	        	  	redispatchToSearchX(searchBar, searchX, e, true);
-	          }
-	          public void mousePressed(MouseEvent e) {
-				  	redispatchToSearchX(searchBar, searchX, e, true);
-			  }
-			  public void mouseReleased(MouseEvent e) {
-			   		redispatchToSearchX(searchBar, searchX, e, true);
-			  }
-			  public void mouseClicked(MouseEvent e) {
-				  	redispatchToSearchX(searchBar, searchX, e, true);
-			  }
-	    });
+	        	  	redispatchToSearchX(searchX, searchBar, e, true);
+	          	}
+	          	public void mousePressed(MouseEvent e) {
+				  redispatchToSearchX(searchX, searchBar, e, true);
+			}
+			public void mouseReleased(MouseEvent e) {
+			   	  redispatchToSearchX(searchX, searchBar, e, true);
+			}
+			public void mouseClicked(MouseEvent e) {
+				  redispatchToSearchX(searchX, searchBar, e, true);
+			}
+	    	});
 		searchBar.add(searchX);
 		
 		// ------------------------------------------------------------------------
