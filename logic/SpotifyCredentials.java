@@ -14,6 +14,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 
 public class SpotifyCredentials {
 	
+	// uses client authentication
 	public static String getSpotifyAccessToken () {
 		
 		String spotifyClientID; // the Spotify client ID I received from signing up to be a developer with Spotify
