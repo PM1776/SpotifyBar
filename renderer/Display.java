@@ -220,16 +220,16 @@ public class Display {
 	          }
 	          public void mouseExited(MouseEvent e) {
 	        	  	searchBar.setBackground(new Color(0, 0, 0, 0));
-	        	  	redispatchToSearchX(e, true);
+	        	  	redispatchToSearchX(searchBar, searchX, e, true);
 	          }
 	          public void mousePressed(MouseEvent e) {
-				  	redispatchToSearchX(e, true);
+				  	redispatchToSearchX(searchBar, searchX, e, true);
 			  }
 			  public void mouseReleased(MouseEvent e) {
-			   		redispatchToSearchX(e, true);
+			   		redispatchToSearchX(searchBar, searchX, e, true);
 			  }
 			  public void mouseClicked(MouseEvent e) {
-				  	redispatchToSearchX(e, true);
+				  	redispatchToSearchX(searchBar, searchX, e, true);
 			  }
 	    });
 		searchBar.add(searchX);
@@ -297,8 +297,8 @@ public class Display {
 			@Override
 		    protected void paintComponent(Graphics g)
 		    {
-			// Paints the background color
-			super.paintComponent(g);
+				// Paints the background color
+				super.paintComponent(g);
 		        g.setColor( getBackground() );
 		        g.fillRect(0, 0, getWidth(), getHeight());
 		        
@@ -315,29 +315,42 @@ public class Display {
 		        g2d.setColor(Color.WHITE);
 		        g2d.setStroke(new BasicStroke(1f));
 		        int margin = 5;
-		        g2d.drawLine ((int) closeIconShape.x + margin, 					// x,
-		        		(int) closeIconShape.y + margin, 				// y,
-		        		(int) closeIconShape.width - margin,  				// w,
+		        g2d.drawLine ((int) closeIconShape.x + margin, 						// x,
+		        		(int) closeIconShape.y + margin, 							// y,
+		        		(int) closeIconShape.width - margin,  						// w,
 		        		(int) (closeIconShape.y + closeIconShape.height - margin));	// h
 		        
-		        g2d.drawLine( (int) closeIconShape.x + margin,					// x,
+		        g2d.drawLine( (int) closeIconShape.x + margin,						// x,
 		        		(int) (closeIconShape.y + closeIconShape.height - margin), 	// y,
-		        		(int) closeIconShape.width - margin, 				// w,
-		        		(int) closeIconShape.y + margin);				// h
+		        		(int) closeIconShape.width - margin, 						// w,
+		        		(int) closeIconShape.y + margin);							// h
 		    }
 		};
 		closePanel.setBounds(8, 16, 20, 56);
 		closePanel.setBackground(new Color(255, 255, 255, 1));
 		closePanel.setVisible(false);
 		closePanel.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
+			
+			public void mousePressed(MouseEvent e) {
+				
+				// if clicking the close button
 				if (closeIconShape.contains(e.getPoint())) {
 					System.exit(0);
+					
+				} else {
+					// drags JFrame otherwise
+					redispatchToSearchX(background, closePanel, e, true);
 				}
 			}
 			public void mouseExited(MouseEvent e) {
 				closePanel.setVisible(false);
 			}
+		});
+		// additional dragging listeners
+		closePanel.addMouseMotionListener(new MouseAdapter() {
+		     public void mouseDragged(MouseEvent e) {
+		    	 redispatchToSearchX(background, closePanel, e, true);
+		     }
 		});
 		
 		// -----------------------------------------------------------------------
@@ -350,6 +363,14 @@ public class Display {
 			public void mouseEntered(MouseEvent e) {
         	  	closePanel.setVisible(true);
 			}
+			public void mousePressed(MouseEvent e) {
+				redispatchToSearchX(background, anchorHoverPanel, e, true);
+			}
+		});
+		anchorHoverPanel.addMouseMotionListener(new MouseAdapter() {
+		     public void mouseDragged(MouseEvent e) {
+		    	 redispatchToSearchX(background, anchorHoverPanel, e, true);
+		     }
 		});
 		
 		// -----------------------------------------------------------------------
@@ -448,15 +469,16 @@ public class Display {
 	 * @param e The MouseEvent.
 	 * @param repaint Repaints the searchX component if true.
 	 */
-	private void redispatchToSearchX(MouseEvent e, boolean repaint) {
-		Point searchBarPoint = e.getPoint();
-		Container container = searchX;
-		Point containerPoint = SwingUtilities.convertPoint(
-		              searchBar,
-		              searchBarPoint,
-		              container);
+	private void redispatchToSearchX(Container targetComp, Component sourceComp,
+			MouseEvent e, boolean repaint) {
 		
-		if (containerPoint.y < 0) { //we're not in the content pane
+		Point sourcePoint = e.getPoint();
+		Point targetPoint = SwingUtilities.convertPoint(
+		              sourceComp,
+		              sourcePoint,
+		              targetComp);
+		
+		if (targetPoint.y < 0) { //we're not in the content pane
 		//Could have special code to handle mouse events over
 		//the menu bar or non-system window decorations, such as
 		//the ones provided by the Java look and feel.
@@ -465,16 +487,16 @@ public class Display {
 		//Find out exactly which component it's over.
 		Component component =
 		SwingUtilities.getDeepestComponentAt(
-		              container,
-		              containerPoint.x,
-		              containerPoint.y);
+		              targetComp,
+		              targetPoint.x,
+		              targetPoint.y);
 		
 			if ((component != null)
-			&& (component.equals(searchX))) {
+			&& (component.equals(targetComp))) {
 				//Forward events over the check box.
 				Point componentPoint = SwingUtilities.convertPoint(
-				                  searchBar,
-				                  searchBarPoint,
+				                  sourceComp,
+				                  sourcePoint,
 				                  component);
 				component.dispatchEvent(new MouseEvent(component,
 				                           e.getID(),
