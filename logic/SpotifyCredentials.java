@@ -16,8 +16,8 @@ public class SpotifyCredentials {
 	
 	public static String getSpotifyAccessToken () {
 		
-		String spotifyClientID = "7210d51b71f44dfeaccbee554173ffcc";
-	    String spotifyClientSecret = "77f5f18b3293413192e0ec00013c01c8";
+		String spotifyClientID; // the Spotify client ID I received from signing up to be a developer with Spotify
+	    String spotifyClientSecret; // the client secret additionally received
 	    
 		//use Spotify credentials for this registered app 
         String together = spotifyClientID + ":" + spotifyClientSecret;
