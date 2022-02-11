@@ -1,5 +1,6 @@
 package renderer;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -8,12 +9,14 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.util.Iterator;
 
@@ -28,7 +31,8 @@ import javax.swing.border.Border;
 import logic.PlayerLogic;
 import logic.Song;
 
-/** A Singleton class that creates an instance of the GUI. The display is entirely
+/** 
+ * A Singleton class that creates an instance of the GUI. The display is entirely
  * composed of images from the <i>Images</i> class, and the album cover quality, 
  * using multiplier scale <b>albumCoverScale</b>, which can renders album covers bigger,
  * is also set in this class. This variable also inversely sets the scale the 
@@ -45,19 +49,22 @@ public class Display {
 	
 	/** The invisible JFrame of the GUI. */
 	private JFrame frame;
+	
 	/** The width of the JFrame. */
 	static final int WIDTH = 565;
+	
 	/** The height of the JFrame. */
 	static final int HEIGHT = 54;
-	private final static String IMAGE_DIR = "\\src\\main\\resources\\";
 	
 	/** The PictureLabel that album covers will be displayed on. */
 	private PictureLabel albumCoverLabel = new PictureLabel();
+	
 	/** The search bar that users can search for songs from Spotify. */
 	private JTextField searchBar;
-	private JPanel currentSongPanel = new JPanel();
+	
 	/** The label that song names will be displayed on. */
 	private JLabel currentSongLabel = new JLabel();
+	
 	/** The label that song artists will be displayed on. */
 	private JLabel currentArtistsLabel = new JLabel();
 	
@@ -72,12 +79,24 @@ public class Display {
 	 * frame and duration. */
 	private PictureLabel trackBar = new PictureLabel(Images.blankTrackBar);
 	
+	/** The JPanel that catches the mouse events to display the close icon. */
+	private JPanel anchorHoverPanel;
+	
+	/** The panel that holds the close button. */
+	private JPanel closePanel;
+	
+	/** The Ellipse that determines if the mouse clicked the close icon */
+	private Ellipse2D.Double closeIconShape;
+	
 	/** Keeps track of if the JFrame is being dragged */
-	boolean frameIsBeingMoved = false;
+	private boolean frameIsBeingMoved = false;
+	
 	/** Stores the X mouse coordinate within the frame. */
-	int offSetMouseX = 0;
+	private int offSetMouseX = 0;
+	
 	/** Stores the Y mouse coordinate within the frame. */
-	int offSetMouseY = 0;  
+	private int offSetMouseY = 0;
+	
 	
 	/** The scale that album covers are scaled down to, which is * by the size it will
 	 * be displayed into, with 1 equating its displayed size, and 4 being
@@ -106,7 +125,7 @@ public class Display {
 		//create invisible JFrame
 		frame = new JFrame();
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		frame.setBounds(screenSize.width - WIDTH - 30, 40, WIDTH, HEIGHT);
+		frame.setBounds(screenSize.width - WIDTH - 30, 40, WIDTH, HEIGHT + 50);
 		frame.setTitle("Spotify Previewer");
 		frame.setUndecorated(true);
 		frame.setBackground(new Color(0, 0, 0, 0));
@@ -201,16 +220,16 @@ public class Display {
 	          }
 	          public void mouseExited(MouseEvent e) {
 	        	  	searchBar.setBackground(new Color(0, 0, 0, 0));
-	        	  	redispatchToSearchX(e, true);
+	        	  	redispatchToSearchX(searchBar, searchX, e, true);
 	          }
 	          public void mousePressed(MouseEvent e) {
-				  	redispatchToSearchX(e, true);
+				  	redispatchToSearchX(searchBar, searchX, e, true);
 			  }
 			  public void mouseReleased(MouseEvent e) {
-			   		redispatchToSearchX(e, true);
+			   		redispatchToSearchX(searchBar, searchX, e, true);
 			  }
 			  public void mouseClicked(MouseEvent e) {
-				  	redispatchToSearchX(e, true);
+				  	redispatchToSearchX(searchBar, searchX, e, true);
 			  }
 	    });
 		searchBar.add(searchX);
@@ -233,7 +252,7 @@ public class Display {
 		play.setBounds(278, 2, 48, 48); //48x48
 		play.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
-				if (!PlayerLogic.isPlaying()) {
+				if (!(PlayerLogic.getPlayerState() == PlayerLogic.PLAYING)) {
 					PlayerLogic.playPreview();
 					play.setPicture(Images.pause);
 				} else {
@@ -244,9 +263,6 @@ public class Display {
 		});
 		
 		// -------------------------------------------------------------------------
-		
-		currentSongPanel.setLayout(null);
-		currentSongPanel.setBounds(334, 9, 175, 20);
 		
 		// Place song name label where it will be, and change font
 		currentSongLabel.setLayout(null);
@@ -268,7 +284,100 @@ public class Display {
 		
 		// -----------------------------------------------------------------------
 		
+		/* Creates a essentially see-through panel (must be alpha 1 to be 
+		 * considered part of the JFrame) that has an Ellipse shape drawn
+		 * onto it that can determine if clicked
+		 * */
+		
+		// The Shape object that will detect the mouse click
+		closeIconShape = new Ellipse2D.Double(0, 40, 16, 16);
+		
+		closePanel = new JPanel () {
+			
+			@Override
+		    protected void paintComponent(Graphics g)
+		    {
+				// Paints the background color
+				super.paintComponent(g);
+		        g.setColor( getBackground() );
+		        g.fillRect(0, 0, getWidth(), getHeight());
+		        
+		        // Then, (1) sets up Graphics2D object
+		        Graphics2D g2d = (Graphics2D) g;
+		        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+		        		RenderingHints.VALUE_ANTIALIAS_ON);
+		        
+		        // (2) Paints the ellipse shape closeIconShape
+		        g2d.setColor(Color.BLACK);
+		        g2d.fill(closeIconShape);
+		        
+		        // and (3) draws an 'X' on closeIconShape
+		        g2d.setColor(Color.WHITE);
+		        g2d.setStroke(new BasicStroke(1f));
+		        int margin = 5;
+		        g2d.drawLine ((int) closeIconShape.x + margin, 						// x,
+		        		(int) closeIconShape.y + margin, 							// y,
+		        		(int) closeIconShape.width - margin,  						// w,
+		        		(int) (closeIconShape.y + closeIconShape.height - margin));	// h
+		        
+		        g2d.drawLine( (int) closeIconShape.x + margin,						// x,
+		        		(int) (closeIconShape.y + closeIconShape.height - margin), 	// y,
+		        		(int) closeIconShape.width - margin, 						// w,
+		        		(int) closeIconShape.y + margin);							// h
+		    }
+		};
+		closePanel.setBounds(8, 16, 20, 56);
+		closePanel.setBackground(new Color(255, 255, 255, 1));
+		closePanel.setVisible(false);
+		closePanel.addMouseListener(new MouseAdapter() {
+			
+			public void mousePressed(MouseEvent e) {
+				
+				// if clicking the close button
+				if (closeIconShape.contains(e.getPoint())) {
+					System.exit(0);
+					
+				} else {
+					// drags JFrame otherwise
+					redispatchToSearchX(background, closePanel, e, true);
+				}
+			}
+			public void mouseExited(MouseEvent e) {
+				closePanel.setVisible(false);
+			}
+		});
+		// additional dragging listeners
+		closePanel.addMouseMotionListener(new MouseAdapter() {
+		     public void mouseDragged(MouseEvent e) {
+		    	 redispatchToSearchX(background, closePanel, e, true);
+		     }
+		});
+		
+		// -----------------------------------------------------------------------
+		
+		// Displays the closePanel when hovered over
+		anchorHoverPanel = new JPanel(null);
+		anchorHoverPanel.setBounds(8, 16, 20, 20);
+		anchorHoverPanel.setBackground(new Color(0, 0, 0, 0));
+		anchorHoverPanel.addMouseListener(new MouseAdapter() {
+			public void mouseEntered(MouseEvent e) {
+        	  	closePanel.setVisible(true);
+			}
+			public void mousePressed(MouseEvent e) {
+				redispatchToSearchX(background, anchorHoverPanel, e, true);
+			}
+		});
+		anchorHoverPanel.addMouseMotionListener(new MouseAdapter() {
+		     public void mouseDragged(MouseEvent e) {
+		    	 redispatchToSearchX(background, anchorHoverPanel, e, true);
+		     }
+		});
+		
+		// -----------------------------------------------------------------------
+		
 		//add components to layeredPane (the higher, the further on the bottom)
+		layeredPane.add(closePanel, 8);
+		layeredPane.add(anchorHoverPanel, 10);
 		layeredPane.add(play, 10);
 		layeredPane.add(currentSongLabel, 11);
 		layeredPane.add(currentArtistsLabel, 11);
@@ -284,10 +393,10 @@ public class Display {
 		frame.setVisible(true); 
 	}
 	
-	/** Switches and play and pause images on PictureLabel play. True is <i>play</i>,
-	 * and false is <i>pause</i>.
+	/** Switches and play and pause images on PictureLabel play; <i>true</i> is play,
+	 * and <i>false</i> is pause.
 	 * 
-	 * @param playButton true is play, false is pause.
+	 * @param playButton <i>true</i> is play, <i>false</i> is pause.
 	 */
 	public void switchPlayPauseButton (boolean playButton) {
 		if (playButton) {
@@ -304,59 +413,27 @@ public class Display {
 	 */
 	public void placeSongOnPlayer(Song song) {
 		if (song != null) {
-			String currentTrackText = song.getName();
+			String currentName = song.getName();
 			String currentArtists = "";
-			
-			//place currentSongNameLabel where it will be
-			JLabel currentSongNameLabel = new JLabel(song.getName());
-			currentSongNameLabel.setLayout(null);
-			currentSongNameLabel.setBounds(340, 9, 175, 20);
-			currentSongNameLabel.setFont(new Font("Calibri Light", Font.BOLD, 12));
-			currentSongNameLabel.setForeground(Color.WHITE);
-			currentSongNameLabel.addMouseListener(new MouseAdapter() {
-				public void mouseClicked(MouseEvent e) {
-					
-				}
-				public void mouseEntered(MouseEvent e) {
-					e.getComponent().setForeground(Color.GRAY);
-				}
-				public void mouseExited(MouseEvent e) {
-					e.getComponent().setForeground(Color.WHITE);
-				}
-			});
 			
 			// Artists are in order of last put in, so iterator runs them backwards
 			Iterator<String> it = song.getArtists().descendingIterator();
 			String nextArtist;
 			
-			while ((nextArtist = it.next()) != song.getArtists().first()) {
+			do {
+				nextArtist = it.next(); 
 				currentArtists += nextArtist + ", ";
 				
-				JLabel currentSongArtistLabel = new JLabel();
-				currentSongArtistLabel.setLayout(null);
-				currentSongArtistLabel.setFont(new Font("Calibri Light", Font.BOLD, 12));
-				currentSongArtistLabel.setForeground(Color.WHITE);
-				currentSongArtistLabel.addMouseListener(new MouseAdapter() {
-					public void mouseClicked(MouseEvent e) {
-						
-					}
-					public void mouseEntered(MouseEvent e) {
-						e.getComponent().setForeground(Color.GRAY);
-					}
-					public void mouseExited(MouseEvent e) {
-						e.getComponent().setForeground(Color.WHITE);
-					}
-				});
-			}
-			currentArtists += song.getArtists().first();
+			} while (nextArtist != song.getArtists().first());
 			
-			currentSongLabel.setText(currentTrackText);
+			currentArtists += nextArtist;
+			
+			currentSongLabel.setText(currentName);
 			currentArtistsLabel.setText(currentArtists);
-			//ready currentSongAlbumLabel to move
 			
 			PlayerLogic.loadAlbumCover(song);
-			
 			albumCoverLabel.setPicture(song.getAlbumCover());
+			
 		} else {
 			System.out.println("No song to display on player.");
 		}
@@ -392,15 +469,16 @@ public class Display {
 	 * @param e The MouseEvent.
 	 * @param repaint Repaints the searchX component if true.
 	 */
-	private void redispatchToSearchX(MouseEvent e, boolean repaint) {
-		Point searchBarPoint = e.getPoint();
-		Container container = searchX;
-		Point containerPoint = SwingUtilities.convertPoint(
-		              searchBar,
-		              searchBarPoint,
-		              container);
+	private void redispatchToSearchX(Container targetComp, Component sourceComp,
+			MouseEvent e, boolean repaint) {
 		
-		if (containerPoint.y < 0) { //we're not in the content pane
+		Point sourcePoint = e.getPoint();
+		Point targetPoint = SwingUtilities.convertPoint(
+		              sourceComp,
+		              sourcePoint,
+		              targetComp);
+		
+		if (targetPoint.y < 0) { //we're not in the content pane
 		//Could have special code to handle mouse events over
 		//the menu bar or non-system window decorations, such as
 		//the ones provided by the Java look and feel.
@@ -409,16 +487,16 @@ public class Display {
 		//Find out exactly which component it's over.
 		Component component =
 		SwingUtilities.getDeepestComponentAt(
-		              container,
-		              containerPoint.x,
-		              containerPoint.y);
+		              targetComp,
+		              targetPoint.x,
+		              targetPoint.y);
 		
 			if ((component != null)
-			&& (component.equals(searchX))) {
+			&& (component.equals(targetComp))) {
 				//Forward events over the check box.
 				Point componentPoint = SwingUtilities.convertPoint(
-				                  searchBar,
-				                  searchBarPoint,
+				                  sourceComp,
+				                  sourcePoint,
 				                  component);
 				component.dispatchEvent(new MouseEvent(component,
 				                           e.getID(),
