@@ -3,24 +3,16 @@
   <groupId>com.mashape.unirest</groupId>
   <artifactId>API-Program-Spotify</artifactId>
   <version>1.4.9</version>
+  <properties>
+  	<maven.compiler.source>1.8</maven.compiler.source>
+  	<maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
   <dependencies>
   
    	<dependency>
-     <groupId>com.mashape.unirest</groupId>
+     <groupId>com.konghq</groupId>
      <artifactId>unirest-java</artifactId>
-     <version>1.4.9</version>
-	</dependency>
-	
-	<dependency>
-  	  <groupId>com.google.code.gson</groupId>
-  	  <artifactId>gson</artifactId>
-  	  <version>2.8.5</version>
-	</dependency>
-	
-	<dependency>
-      <groupId>javazoom</groupId>
-      <artifactId>jlayer</artifactId>
-      <version>1.0.1</version>
+     <version>3.13.6</version>
 	</dependency>
 	
 	<dependency>
@@ -28,11 +20,39 @@
       <artifactId>thumbnailator</artifactId>
       <version>[0.4, 0.5)</version>
     </dependency>
+
+	<dependency>
+	    <groupId>com.jayway.jsonpath</groupId>
+	    <artifactId>json-path</artifactId>
+	    <version>2.7.0</version>
+	</dependency>
+	
+    <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-core</artifactId>
+        <version>1.33</version>
+    </dependency>
+
+    <dependency>
+	    <groupId>org.openjdk.jmh</groupId>
+	    <artifactId>jmh-generator-annprocess</artifactId>
+	    <version>1.21</version>
+	    <scope>test</scope>
+	</dependency>
+    
+    <dependency>
+	    <groupId>com.google.appengine</groupId>
+	    <artifactId>openjdk8</artifactId>
+	    <version>1.9.31</version>
+	    <type>pom</type>
+	</dependency>
+
     
     <!-- 
     We have to explicitly instruct Maven to use tritonus-share 0.3.7-2 
     and NOT 0.3.7-1, otherwise vorbisspi won't work.
    -->
+   
 	<dependency>
   	  <groupId>com.googlecode.soundlibs</groupId>
   	  <artifactId>tritonus-share</artifactId>
@@ -50,4 +70,35 @@
 	</dependency>
 
   </dependencies>
+  
+  <build>
+	<finalName>java-jmh</finalName>
+	<plugins>
+	    <plugin>
+		    <groupId>org.codehaus.mojo</groupId>
+		    <artifactId>exec-maven-plugin</artifactId>
+		    <version>3.0.0</version>
+		    <executions>
+		        <execution>
+		            <id>run-benchmarks</id>
+		            <phase>integration-test</phase>
+		            <goals>
+		                <goal>exec</goal>
+		            </goals>
+		            <configuration>
+		                <classpathScope>test</classpathScope>
+		                <executable>java</executable>
+		                <arguments>
+		                    <argument>-classpath</argument>
+		                    <classpath />
+		                    <argument>org.openjdk.jmh.Main</argument>
+		                    <argument>.*</argument>
+		                </arguments>
+		            </configuration>
+		        </execution>
+		    </executions>
+		</plugin>
+	</plugins>
+  </build>
+  
 </project>
