@@ -1,0 +1,95 @@
+{
+    "timestamp": 1644829166827,
+    "progress_ms": 138563,
+    "item": {
+      "album": {
+        "album_type": "album",
+        "artists": [
+          {
+            "external_urls": {
+              "spotify": "https://open.spotify.com/artist/11Y54BxlxC3UIAUkU2eadQ"
+            },
+            "href": "https://api.spotify.com/v1/artists/11Y54BxlxC3UIAUkU2eadQ",
+            "id": "11Y54BxlxC3UIAUkU2eadQ",
+            "name": "Rend Collective",
+            "type": "artist",
+            "uri": "spotify:artist:11Y54BxlxC3UIAUkU2eadQ"
+          }
+        ],
+        "available_markets": [
+          "AD"
+        ],
+        "external_urls": {
+          "spotify": "https://open.spotify.com/album/1do9XXkq2SLwDV7vsEjtjg"
+        },
+        "href": "https://api.spotify.com/v1/albums/1do9XXkq2SLwDV7vsEjtjg",
+        "id": "1do9XXkq2SLwDV7vsEjtjg",
+        "images": [
+          {
+            "height": 640,
+            "url": "https://i.scdn.co/image/ab67616d0000b2737cc8517f09c27c5e6f240e37",
+            "width": 640
+          },
+          {
+            "height": 300,
+            "url": "https://i.scdn.co/image/ab67616d00001e027cc8517f09c27c5e6f240e37",
+            "width": 300
+          },
+          {
+            "height": 64,
+            "url": "https://i.scdn.co/image/ab67616d000048517cc8517f09c27c5e6f240e37",
+            "width": 64
+          }
+        ],
+        "name": "Good News (Deluxe Edition)",
+        "release_date": "2018-01-19",
+        "release_date_precision": "day",
+        "total_tracks": 21,
+        "type": "album",
+        "uri": "spotify:album:1do9XXkq2SLwDV7vsEjtjg"
+      },
+      "artists": [
+        {
+          "external_urls": {
+            "spotify": "https://open.spotify.com/artist/11Y54BxlxC3UIAUkU2eadQ"
+          },
+          "href": "https://api.spotify.com/v1/artists/11Y54BxlxC3UIAUkU2eadQ",
+          "id": "11Y54BxlxC3UIAUkU2eadQ",
+          "name": "Rend Collective",
+          "type": "artist",
+          "uri": "spotify:artist:11Y54BxlxC3UIAUkU2eadQ"
+        }
+      ],
+      "available_markets": [
+        "AD"
+      ],
+      "disc_number": 1,
+      "duration_ms": 245738,
+      "explicit": false,
+      "external_ids": {
+        "isrc": "USUG11701898"
+      },
+      "external_urls": {
+        "spotify": "https://open.spotify.com/track/4GTkBqQwkjGpOjwgCPnabN"
+      },
+      "href": "https://api.spotify.com/v1/tracks/4GTkBqQwkjGpOjwgCPnabN",
+      "id": "4GTkBqQwkjGpOjwgCPnabN",
+      "is_local": false,
+      "name": "Nailed To The Cross",
+      "popularity": 49,
+      "preview_url": "https://p.scdn.co/mp3-preview/e18661225590f325ced6a109d35886adbc77abcb?cid\u003d7210d51b71f44dfeaccbee554173ffcc",
+      "track_number": 5,
+      "type": "track",
+      "uri": "spotify:track:4GTkBqQwkjGpOjwgCPnabN"
+    },
+    "currently_playing_type": "track",
+    "actions": {
+      "disallows": {
+        "resuming": true,
+        "toggling_repeat_context": true,
+        "toggling_repeat_track": true,
+        "toggling_shuffle": true
+      }
+    },
+    "is_playing": true
+  }

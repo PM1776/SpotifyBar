@@ -1,0 +1,88 @@
+{
+  "tracks" : {
+    "href" : "https://api.spotify.com/v1/search?query=battle+scars&type=track&offset=0&limit=1",
+    "items" : [ {
+      "album" : {
+        "album_type" : "album",
+        "artists" : [ {
+          "external_urls" : {
+            "spotify" : "https://open.spotify.com/artist/01QTIT5P1pFP3QnnFSdsJf"
+          },
+          "href" : "https://api.spotify.com/v1/artists/01QTIT5P1pFP3QnnFSdsJf",
+          "id" : "01QTIT5P1pFP3QnnFSdsJf",
+          "name" : "Lupe Fiasco",
+          "type" : "artist",
+          "uri" : "spotify:artist:01QTIT5P1pFP3QnnFSdsJf"
+        } ],
+        "available_markets" : [ "AD", "AE", "AG", "AL", "AM", "AO", "AR", "AT", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BN", "BO", "BR", "BS", "BW", "BY", "BZ", "CA", "CD", "CG", "CH", "CI", "CL", "CM", "CO", "CR", "CV", "CW", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "ES", "FI", "FR", "GA", "GB", "GD", "GE", "GH", "GM", "GN", "GQ", "GR", "GT", "GW", "HK", "HN", "HR", "HT", "HU", "ID", "IE", "IL", "IN", "IQ", "IS", "IT", "JM", "JO", "JP", "KE", "KG", "KH", "KM", "KN", "KR", "KW", "KZ", "LA", "LB", "LC", "LI", "LK", "LR", "LS", "LT", "LU", "LV", "LY", "MA", "MC", "MD", "ME", "MG", "MK", "ML", "MO", "MR", "MT", "MU", "MW", "MX", "MY", "MZ", "NA", "NE", "NG", "NI", "NL", "NO", "OM", "PA", "PE", "PH", "PK", "PL", "PS", "PT", "PY", "QA", "RO", "RS", "RU", "RW", "SA", "SC", "SE", "SG", "SI", "SK", "SL", "SM", "SN", "ST", "SV", "SZ", "TD", "TG", "TH", "TJ", "TL", "TN", "TR", "TT", "TW", "TZ", "UA", "UG", "US", "UY", "UZ", "VC", "VE", "VN", "XK", "ZA", "ZM", "ZW" ],
+        "external_urls" : {
+          "spotify" : "https://open.spotify.com/album/5rCCCernTo6IwFwEZM4H53"
+        },
+        "href" : "https://api.spotify.com/v1/albums/5rCCCernTo6IwFwEZM4H53",
+        "id" : "5rCCCernTo6IwFwEZM4H53",
+        "images" : [ {
+          "height" : 640,
+          "url" : "https://i.scdn.co/image/ab67616d0000b2734b9f3b34399b7ae4cc7a45be",
+          "width" : 640
+        }, {
+          "height" : 300,
+          "url" : "https://i.scdn.co/image/ab67616d00001e024b9f3b34399b7ae4cc7a45be",
+          "width" : 300
+        }, {
+          "height" : 64,
+          "url" : "https://i.scdn.co/image/ab67616d000048514b9f3b34399b7ae4cc7a45be",
+          "width" : 64
+        } ],
+        "name" : "Food & Liquor II: The Great American Rap Album, Pt. 1",
+        "release_date" : "2012-09-25",
+        "release_date_precision" : "day",
+        "total_tracks" : 16,
+        "type" : "album",
+        "uri" : "spotify:album:5rCCCernTo6IwFwEZM4H53"
+      },
+      "artists" : [ {
+        "external_urls" : {
+          "spotify" : "https://open.spotify.com/artist/01QTIT5P1pFP3QnnFSdsJf"
+        },
+        "href" : "https://api.spotify.com/v1/artists/01QTIT5P1pFP3QnnFSdsJf",
+        "id" : "01QTIT5P1pFP3QnnFSdsJf",
+        "name" : "Lupe Fiasco",
+        "type" : "artist",
+        "uri" : "spotify:artist:01QTIT5P1pFP3QnnFSdsJf"
+      }, {
+        "external_urls" : {
+          "spotify" : "https://open.spotify.com/artist/5PjekOABtfU2Kwo0AHVmci"
+        },
+        "href" : "https://api.spotify.com/v1/artists/5PjekOABtfU2Kwo0AHVmci",
+        "id" : "5PjekOABtfU2Kwo0AHVmci",
+        "name" : "Guy Sebastian",
+        "type" : "artist",
+        "uri" : "spotify:artist:5PjekOABtfU2Kwo0AHVmci"
+      } ],
+      "available_markets" : [ "AD", "AE", "AG", "AL", "AM", "AO", "AR", "AT", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BN", "BO", "BR", "BS", "BW", "BY", "BZ", "CA", "CD", "CG", "CH", "CI", "CL", "CM", "CO", "CR", "CV", "CW", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "ES", "FI", "FR", "GA", "GB", "GD", "GE", "GH", "GM", "GN", "GQ", "GR", "GT", "GW", "HK", "HN", "HR", "HT", "HU", "ID", "IE", "IL", "IN", "IQ", "IS", "IT", "JM", "JO", "JP", "KE", "KG", "KH", "KM", "KN", "KR", "KW", "KZ", "LA", "LB", "LC", "LI", "LK", "LR", "LS", "LT", "LU", "LV", "LY", "MA", "MC", "MD", "ME", "MG", "MK", "ML", "MO", "MR", "MT", "MU", "MW", "MX", "MY", "MZ", "NA", "NE", "NG", "NI", "NL", "NO", "OM", "PA", "PE", "PH", "PK", "PL", "PS", "PT", "PY", "QA", "RO", "RS", "RU", "RW", "SA", "SC", "SE", "SG", "SI", "SK", "SL", "SM", "SN", "ST", "SV", "SZ", "TD", "TG", "TH", "TJ", "TL", "TN", "TR", "TT", "TW", "TZ", "UA", "UG", "US", "UY", "UZ", "VC", "VE", "VN", "XK", "ZA", "ZM", "ZW" ],
+      "disc_number" : 1,
+      "duration_ms" : 250320,
+      "explicit" : false,
+      "external_ids" : {
+        "isrc" : "AUBM01200186"
+      },
+      "external_urls" : {
+        "spotify" : "https://open.spotify.com/track/1hWYT0w2R0J19rlVkiez7X"
+      },
+      "href" : "https://api.spotify.com/v1/tracks/1hWYT0w2R0J19rlVkiez7X",
+      "id" : "1hWYT0w2R0J19rlVkiez7X",
+      "is_local" : false,
+      "name" : "Battle Scars",
+      "popularity" : 73,
+      "preview_url" : "https://p.scdn.co/mp3-preview/aab1e1fdc85fb333885570ca7c2d32fd8e3322b3?cid=7210d51b71f44dfeaccbee554173ffcc",
+      "track_number" : 11,
+      "type" : "track",
+      "uri" : "spotify:track:1hWYT0w2R0J19rlVkiez7X"
+    } ],
+    "limit" : 1,
+    "next" : "https://api.spotify.com/v1/search?query=battle+scars&type=track&offset=1&limit=1",
+    "offset" : 0,
+    "previous" : null,
+    "total" : 1591
+  }
+}
