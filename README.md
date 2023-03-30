@@ -1,11 +1,12 @@
-# SpotifyBar
-This program can get authorization to the Spotify Web API through either the Client Authorization (previews) or Authorization Code + PKCE flow (user access), which it uses to make search, play, pause, transfer playback to another device, as well as other requests. I didn't quite realize how easily accessable other libraries were that already implemented all this, but it was a really good experience for learning the OAuth 2.0 client side authorization and SO much more.
+# Spotify Search Bar
+This app prompts the user to login to their spotify account to begin playing songs. If login is unsuccessful or denied, it can additionally fallback to playing previews of available songs on Spotify. The search bar also stays atop of other desktop applications.
 
-It's basically a program that sits on top of other applications and easily allows for quick song searches. The main method is in PlayerLogic.java and an executable jar is still in the works, as it requires vm arguments to execute now, but an older, only Client Authorization flow, version is the SpotifyPreviewer.jar.
+The application can be downloaded at https://paulmeddaugh.github.io/resources/SpotifyBar.zip
 
-Its GUI is a draggable, slim bar that is almost entirely made up of created BufferedImages from the Images class, allowing images to easily be created with a higher resolution and drawn smaller with the Graphics library to the same scale inverted. Graphics can scale down about 4 times the resolution of an image while making it more defined, and this method is also used with the album art, resulting in higher definition (though 4 is somewhat too defined for album art). Its play and pause buttons, as well as the track progress bar, are additionally created from BufferedImages.
+The main method can be found in [PlayerLogic.java](./src/main/java/logic/playerlogic/PlayerLogic.java)
 
-The program implements its own player for the Client Authorization flow (previews), playing the track on a seperate thread set to low priority with an AudioInputStream and plays them using the Java Sound extension library mp3spi-1.9.5-1.jar.
+### Spotify Login
+The app logs in to the Spotify Web API using its most secure OAuth flow, authorization code with a PKCE key, with vanilla Java. If no account credentials are provided, the app fallsback to login using a client authorization flow, which has limited preview URL access to Spotify song data.
 
-This program has provided good practice with REST API's, microservices, OAuth 2 authorization, good graphics in java, experience with a powerful sound API, and provided practice
-with the new concepts I learned studying for the OCA Java SE 8 Programmer I Certification and for best practice Java development.
+### Graphics
+This application provides incredibly sharp graphics by creating nearly all UI images in BufferedImages with the Graphics2D API at a scaled high resolution. These BufferedImages are then painted using Graphics2D objects at the inversed resolution scale to provide sharp images no matter the desktop display settings (only Windows tested). A similar technique is used to display the same scaled high quality for song album art.
