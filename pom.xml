@@ -33,6 +33,45 @@
 	    <version>1.9.31</version>
 	    <type>pom</type>
 	</dependency>
+	<dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-controls</artifactId>
+        <version>13-ea+7</version>
+    </dependency>
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-fxml</artifactId>
+        <version>13-ea+7</version>
+    </dependency>
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-web</artifactId>
+        <version>13-ea+7</version>
+    </dependency>
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-swing</artifactId>
+        <version>13-ea+7</version>
+    </dependency>
+        
+	<dependency>
+	    <groupId>org.openjfx</groupId>
+	    <artifactId>javafx-graphics</artifactId>
+	    <version>12.0.1</version>
+	    <classifier>win</classifier>
+	</dependency>
+	<dependency>
+	    <groupId>org.openjfx</groupId>
+	    <artifactId>javafx-graphics</artifactId>
+	    <version>12.0.1</version>
+	    <classifier>linux</classifier>
+	</dependency>
+	<dependency>
+	    <groupId>org.openjfx</groupId>
+	    <artifactId>javafx-graphics</artifactId>
+	    <version>12.0.1</version>
+	    <classifier>mac</classifier>
+	</dependency>
 
     <!-- 
     We have to explicitly instruct Maven to use tritonus-share 0.3.7-2 
@@ -56,4 +95,29 @@
 	</dependency>
 
   </dependencies>
+  <build>
+  	<plugins>
+  	  <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-shade-plugin</artifactId>
+	    <version>3.2.1</version>
+	    <executions>
+	        <execution>
+	            <phase>package</phase>
+	            <goals>
+	                <goal>shade</goal>
+	            </goals>
+	            <configuration>
+	                <transformers>
+	                    <transformer implementation=
+	                                         "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+	                        <mainClass>logic.playerlogic.PlayerLogic</mainClass>
+	                    </transformer>
+	                </transformers>
+	            </configuration>
+	        </execution>
+	    </executions>
+	  </plugin>
+  	</plugins>
+  </build>
 </project>

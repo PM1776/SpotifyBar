@@ -78,7 +78,7 @@ public class Images {
 	/** The 'que' button in the search Bar to add a song to the que. */
 	public final BufferedImage addToQueue;
 	
-	private final String IMAGE_DIR = ""; // "/resources" for executable jar
+	private final String IMAGE_DIR = ""; // "/resources" for executable
 	
 	/** The multiplier scale that BufferedImages are drawn from their original size. */
 	private final int scale;

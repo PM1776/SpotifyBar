@@ -6,7 +6,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.imageio.ImageIO;
@@ -27,8 +30,8 @@ import net.coobird.thumbnailator.Thumbnails;
 import renderer.display.Display;
 
 /** Handles all the logic of a music player, including loading songs from
- * Spotify servers, loading album art, and playing, pausing, and stopping a
- * preview of a song. This class holds the instance of the <i>Display</i> class
+ * Spotify servers, loading album art, as well as playing, pausing, and stopping the
+ * previews of a song. This class holds the instance of the <i>Display</i> class
  * and the main method for the program.
  * 
  * @version 2022-2-9
@@ -39,8 +42,9 @@ public class PlayerLogic implements PlayerActionConstants {
 	/** An instance of the <i>Display</i> class. */
 	private static Display display;
 	
-	/** Handles the Spotify authorization using either the Client Authorization flow
-	 * or Authorization Code + PKCE flow as well as the Web API requests. */
+	/** Handles the Spotify Web API requests, including authorization using either the 
+	 * <i>Client Authorization</i> flow (only can get preview files) or <i>Authorization 
+	 * Code + PKCE</i> flow (plays from a user's account). */
 	private static SpotifyAPI spotifyAPI = new SpotifyAPI();
 	
 	/** A boolean that is <b>true</b> if using the <i>Authorization Code + PKCE</i> flow 
@@ -86,15 +90,14 @@ public class PlayerLogic implements PlayerActionConstants {
 	}
 	
 	public static void loadPlayer () {
-		if (authCodeFlow) { // Auth Code flow
+		if (authCodeFlow) {
 			
 			try {
 				spotifyAPI = new SpotifyAPI(() -> {
-					
 					if (spotifyAPI.authorizationSuccessful()) {
 						accessTokenTime = System.currentTimeMillis() / 1_000;
 						display = Display.createDisplayInstance(authCodeFlow);
-						updatePlaybackState.run();	
+						updatePlaybackState.run();
 					} else { // User probably closed approvalBrowser
 						showUserUninterestedAlert();
 					}
@@ -135,15 +138,15 @@ public class PlayerLogic implements PlayerActionConstants {
 		}
 		
 		display.displaySong(currentSong.getDeepCopy());
-		
 	}
 	
 	public static Thread createUpdateThread () {
-		return new Thread( () -> {
+		return new Thread(() -> {
 			while (true) {
 				lock.lock();
 				
 				Device activeDevice = new Device();
+				String json = null;
 				
 				try {
 					// Checks if access token needs to be refreshed
@@ -151,9 +154,9 @@ public class PlayerLogic implements PlayerActionConstants {
 						spotifyAPI.requestRefreshToken();
 						accessTokenTime = System.currentTimeMillis() / 1_000;
 					}
-					// Gets the song on Spotify without albumCover
 					
-					String json = spotifyAPI.getPlaybackState(false);
+					// Gets the song on Spotify without albumCover
+					json = spotifyAPI.getPlaybackState(false);
 					Song playbackSong = Song.initializeFromJSON(json, 
 							JSONPreset.getJSONPresetbyName("playbackState"))[0];
 					activeDevice = Device.initializeThisDevice(json);
@@ -185,9 +188,18 @@ public class PlayerLogic implements PlayerActionConstants {
 				} catch (JSONSongException jse) {
 					if (jse.getMessage().contains("Empty JSON String: {}")) {
 						System.out.println("No active player.");
+						
 					} else if (jse.getMessage().contains("No song information at "
 							+ "baseJSONPath")) {
 						
+						if (currentSong != null) {
+							currentSong.setName("Active Device In Private Mode");
+							currentSong.setArtists("");
+						} else {
+							currentSong = new Song("Active Device In Private Mode");
+						}
+						
+						display.displaySong(currentSong.getDeepCopy(), true);
 					} else {
 						jse.printStackTrace();
 					}
@@ -214,10 +226,8 @@ public class PlayerLogic implements PlayerActionConstants {
 	 * */
 	public static void SearchEnter (String search) {
 		
-		// Client flow
-		if (!authCodeFlow) { 
-			// Stops preview if not already
-			switch (playerState) {
+		if (!authCodeFlow) { // In Client flow,
+			switch (playerState) { // stops the preview if not already stopped
 				case PAUSED:
 				case PLAYING:
 					stopPreview();
@@ -241,7 +251,7 @@ public class PlayerLogic implements PlayerActionConstants {
 						currentSong = searchSong;
 						display.displaySong(currentSong.getDeepCopy(), false); // pause
 						play();
-					} 
+					}
 				} while (!unlocked);
 			} finally {
 				lock.unlock();
@@ -259,7 +269,7 @@ public class PlayerLogic implements PlayerActionConstants {
 		
 		if (authCodeFlow) { // Authorization Code play
 			
-			String response = playerAction(PLAY);
+			playerAction(PLAY);
 			
 		} else { // Client Authorization (plays preview)
 			if (currentSong == null) {
@@ -334,6 +344,7 @@ public class PlayerLogic implements PlayerActionConstants {
 				case PLAY:
 					if (thisDevice != null) {
 						response = spotifyAPI.transferPlayback(true, thisDevice.getId());
+						display.setPlayPauseImage(true);
 					} else {
 						showNoActiveDevicesAlert();
 						display.setPlayPauseImage(true);
@@ -401,7 +412,12 @@ public class PlayerLogic implements PlayerActionConstants {
 			
 			if (response.equals("{}")) {
 				playerState = (action == PAUSED) ? PAUSED : PLAYING;
+			} else if (response.contains("Restriction violated")) {
+				JOptionPane.showMessageDialog(null, "No song to play.",
+        			"No Specified Song", 0);
 			} else {
+				JOptionPane.showMessageDialog(null, "Spotify Bar Crashed.",
+	        			"Unanticipated JSON response: \n" + response, 0);
 				throw new RuntimeException(response);
 			}
 	
@@ -503,17 +519,17 @@ public class PlayerLogic implements PlayerActionConstants {
 	}
 	
 	public static void showUserUninterestedAlert() {
-		Object[] choices = {"Close", "Play Without Account"};
+		Object[] choices = {"Play Without Account", "Yes"};
 		Object defaultChoice = choices[0];
 		int result = JOptionPane.showOptionDialog(null,
-		             "Close, or play without account?",
-		             "Anonymous One",
+		             "Close?",
+		             "Spotify Search",
 		             JOptionPane.YES_NO_OPTION,
 		             JOptionPane.QUESTION_MESSAGE,
 		             null,
 		             choices,
 		             defaultChoice);
-		if (result == JOptionPane.YES_OPTION || result == JOptionPane.CLOSED_OPTION) {
+		if (result == JOptionPane.NO_OPTION || result == JOptionPane.CLOSED_OPTION) {
 			System.exit(0);
 		} else {
 			authCodeFlow = false;

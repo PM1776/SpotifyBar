@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
@@ -33,8 +34,8 @@ public class ApprovalBrowser extends JFrame {
 	
 	Images images = new Images();
 	
-	private static final int WIDTH = 350;
-	private static final int HEIGHT = 425;
+	private static final int WIDTH = 525; // gets bigger when converted to .exe,
+	private static final int HEIGHT = 637; // scaled up 1.5
 	
 	private String url;
 	
@@ -70,21 +71,20 @@ public class ApprovalBrowser extends JFrame {
 	public ApprovalBrowser (String url, String redirectURI, String[] queryParams) {
 		
 		this.url = url;
-		
 		// Thread off of main
 		SwingUtilities.invokeLater(() -> {
 			
 			JFXPanel fxPanel = new JFXPanel();
 			
 			//frame = new JFrame("Spotify Bar");
-			this.setTitle("Spotify Bar");
+			this.setTitle("Loading...");
 			this.setIconImage(images.icon);
 			this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 			this.setLayout(new BorderLayout());
 	
 			// FX Thread to run its widgets
 			Platform.runLater(() -> {
-				WebView webView = new WebView();
+				WebView webView = new WebView(); // (below) "/resources/WebView.css" for IDE
 				webView.getEngine().setUserStyleSheetLocation(getClass().getResource("/WebView.css").toExternalForm());
 				
 				webEngine = webView.getEngine();
@@ -98,6 +98,7 @@ public class ApprovalBrowser extends JFrame {
 			            if (Worker.State.SUCCEEDED.equals(newValue)) {
 			            	
 			            	this.url = webEngine.getLocation();
+			            	this.setTitle("Spotify Bar");
 			            	
 			            	if (this.url.contains(redirectURI)) {
 			            		

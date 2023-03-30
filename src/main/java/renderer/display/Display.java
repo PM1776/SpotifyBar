@@ -21,6 +21,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -89,10 +92,6 @@ public class Display {
 	 * searchtf text. */
 	private PictureButtonPanel searchX;
 	
-	/** PictureButtonPanel with que of class Images as the picture to add searched 
-	 * song to que. */
-	private PictureButtonPanel addToQueue;
-	
 	/** PictureLabel that switches between "play" and "pause" BufferedImages from 
 	 * class Images as picture, and button highlighting enabled. */
 	private PictureButtonPanel playPause;
@@ -116,12 +115,6 @@ public class Display {
 	
 	/** The JPanel that catches the mouse events to display the close icon. */
 	private JPanel anchorHoverPanel;
-	
-	/** The panel that holds the close button. */
-	private JPanel closePanel;
-	
-	/** The Ellipse that determines if the mouse clicked the close icon */
-	private Ellipse2D.Double closeIconShape;
 	
 	/** Keeps track of if the JFrame is being dragged. */
 	private boolean frameIsBeingMoved;
@@ -184,7 +177,7 @@ public class Display {
 		frame = new JFrame();
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		frame.setBounds(screenSize.width - WIDTH - 30, 40, WIDTH, HEIGHT + 50);
-		frame.setTitle("Spotify Search Mini");
+		frame.setTitle("Spotify Bar");
 		frame.setIconImage(images.icon);
 		frame.setUndecorated(true);
 		frame.setBackground(new Color(0, 0, 0, 0));
@@ -209,21 +202,6 @@ public class Display {
 				//sets frame position when mouse dragged
 				frame.setLocation(e.getXOnScreen() - offSetMouseX,
 						e.getYOnScreen() - offSetMouseY);
-		     }
-		     public void mouseMoved(MouseEvent e) {
-		    	 redispatchMouseEvent(closePanel, background, e, true);
-//		    	 Component targetComp = closePanel;
-//		    	 
-//		    	Point sourcePoint = e.getPoint();
-//		 		Point targetPoint = SwingUtilities.convertPoint(
-//		 		              background,
-//		 		              sourcePoint,
-//		 		              targetComp);
-//		 		
-//		 		if (targetPoint.y >= 0 && targetPoint.y <= targetComp.getHeight() &&
-//		 				targetPoint.x >= 0 && targetPoint.x <= targetComp.getWidth() ) {
-//		 			closePanel.setVisible(true);
-//		 		}
 		     }
 		});
 		background.addMouseListener(new MouseAdapter() {
@@ -254,22 +232,6 @@ public class Display {
 	          }
 	    });
 		
-		// queue button
-		addToQueue = new PictureButtonPanel(images.addToQueue);
-		addToQueue.setPreferredSize(new Dimension(
-				images.addToQueue.getWidth() / images.getScale(),
-				images.addToQueue.getHeight() / images.getScale()));
-		addToQueue.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
-				PlayerLogic.addToQueue(searchtf.getText());
-				final Popup p = PopupFactory.getSharedInstance()
-						.getPopup(frame, new JLabel("Added to Queue!"), 
-								frame.getX() + addToQueue.getX() + addToQueue.getWidth() / 2, 
-								frame.getY() + addToQueue.getY() + addToQueue.getHeight() / 2);
-			    p.show();
-			}
-		});
-		
 		// searchX button
 		searchX = new PictureButtonPanel(images.searchX);
 		searchX.setPreferredSize(new Dimension(
@@ -280,13 +242,6 @@ public class Display {
 				searchtf.setText("");
 			}
 		});
-		
-		JPanel queuePanel = new JPanel(new BorderLayout());
-		queuePanel.add(searchtf, BorderLayout.CENTER);
-		queuePanel.add(addToQueue, BorderLayout.EAST);
-		queuePanel.setBorder(new EmptyBorder(0, 0, 0, 3));
-		queuePanel.setOpaque(false);
-		queuePanel.setBackground(new Color(0, 0, 0, 0));
 		
 		JPanel searchPanel = new JPanel() {
 		    
@@ -306,7 +261,7 @@ public class Display {
 		searchPanel.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(214, 214, 214, 70)),
 				new EmptyBorder(5, 5, 5, 5)));
-		searchPanel.add(queuePanel, BorderLayout.CENTER);
+		searchPanel.add(searchtf, BorderLayout.CENTER);
 		searchPanel.add(searchX, BorderLayout.EAST);
 		searchPanel.setOpaque(false);
 		searchPanel.setBackground(new Color(0, 0, 0, 0));
@@ -319,7 +274,6 @@ public class Display {
 	          }
 		};
 		searchtf.addMouseListener(ma); // search components sit
-		addToQueue.addMouseListener(ma);
 		searchX.addMouseListener(ma);  // on top of panel
 		searchPanel.addMouseListener(ma);
 		
@@ -337,7 +291,7 @@ public class Display {
 		
 		// ------------------------------------------------------------------------
 		
-		//place Play/Pause button in the right location and add listeners
+		// place Play/Pause button in the right location and add listeners
 		playPause = new PictureButtonPanel(images.play, true);
 		playPause.setPreferredSize(new Dimension(
 				images.play.getWidth() / images.getScale(), 
@@ -370,6 +324,7 @@ public class Display {
 					PlayerLogic.previous();
 				}
 			});
+			//previous.setHighlightBorderColor(Color.GRAY);
 			gbc.gridx = 0;
 			playerControlPanel.add(previous, gbc);
 			
@@ -378,6 +333,7 @@ public class Display {
 			forward.setPreferredSize(new Dimension(
 					images.forward.getWidth() / images.getScale(),
 					images.forward.getHeight() / images.getScale() ));
+			//forward.setHighlightBorderColor(Color.GRAY);
 			forward.addMouseListener(new MouseAdapter() {
 				public void mouseClicked(MouseEvent e) {
 					PlayerLogic.next();
@@ -397,7 +353,7 @@ public class Display {
 		nameLabel = new JTextField();
 		nameLabel.setBorder(null);
 		nameLabel.setEnabled(false);
-		nameLabel.setBorder(new EmptyBorder(12, 0, 0, 0));
+		nameLabel.setBorder(new EmptyBorder(10, 0, 0, 0));
 		nameLabel.setBackground(new Color(0, 0, 0, 0));
 		nameLabel.setFont(new Font("Calibri Light", Font.BOLD, 12));
 		nameLabel.setDisabledTextColor(Color.WHITE);
@@ -412,13 +368,11 @@ public class Display {
 		
 		// Places the player track bar where it will be
 		trackBar = new PictureLabel(images.blankTrackBar);
-		trackBar.setPreferredSize(new Dimension(0, 10));
-		trackBar.setBorder(new EmptyBorder(0, 0, 12, 0));
+		trackBar.setPreferredSize(new Dimension(0, 10)); // expands width with GridBag
+		trackBar.setBorder(new EmptyBorder(0, 0, 10, 0));
 		
 		JPanel songInfoPanel = new JPanel();
 		songInfoPanel.setLayout(new GridBagLayout());
-		songInfoPanel.setBorder(new EmptyBorder(0, 5, 0, 5));
-		songInfoPanel.setBorder(BorderFactory.createLineBorder(Color.BLUE));
 		songInfoPanel.setBackground(new Color(0, 0, 0, 0));
 		songInfoPanel.setOpaque(false);
 		
@@ -440,89 +394,16 @@ public class Display {
 		
 		// panel used to honor setPreferredSize of albumCoverLabel
 		JPanel albumCoverPanel = new JPanel(new BorderLayout());
-		//albumCoverPanel.setBackground(new Color(0, 0, 0, 0)); // (60x54) for some reason
-		albumCoverPanel.setBorder(BorderFactory.createLineBorder(Color.RED));
+		albumCoverPanel.setBackground(new Color(0, 0, 0, 0)); // (60x54) for some reason
 		albumCoverPanel.add(albumCoverLabel, BorderLayout.CENTER);
 		
 		JPanel songPanel = new JPanel();
 		songPanel.setLayout(new BorderLayout());
-		//songPanel.setBorder(new EmptyBorder(0, 5, 0, 5));
+		songPanel.setBorder(new EmptyBorder(0, 5, 0, 5));
 		songPanel.setBackground(new Color(0, 0, 0, 0));
 		songPanel.setOpaque(false);
-		//songPanel.add(albumCoverPanel, BorderLayout.EAST);
+		songPanel.add(albumCoverPanel, BorderLayout.EAST);
 		songPanel.add(songInfoPanel, BorderLayout.CENTER);
-		
-		// -----------------------------------------------------------------------
-		
-		/* Creates an essentially see-through panel (must be alpha 1 to be 
-		 * considered part of the JFrame) that has an Ellipse shape drawn
-		 * onto it that can determine if clicked
-		 * */
-		
-		// The Shape object that will detect the mouse click
-		closeIconShape = new Ellipse2D.Double(0, 40, 16, 16);
-		
-		closePanel = new JPanel () {
-			
-			@Override
-		    protected void paintComponent(Graphics g)
-		    {
-				// Paints the background color
-				super.paintComponent(g);
-		        g.setColor( getBackground() );
-		        g.fillRect(0, 0, getWidth(), getHeight());
-		        
-		        // Then, (1) sets up Graphics2D object
-		        Graphics2D g2d = (Graphics2D) g;
-		        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-		        		RenderingHints.VALUE_ANTIALIAS_ON);
-		        
-		        // (2) Paints the ellipse shape closeIconShape
-		        g2d.setColor(Color.BLACK);
-		        g2d.fill(closeIconShape);
-		        
-		        // and (3) draws an 'X' on closeIconShape
-		        g2d.setColor(Color.WHITE);
-		        g2d.setStroke(new BasicStroke(1f));
-		        int margin = 5;
-		        g2d.drawLine ((int) closeIconShape.x + margin, 						// x,
-		        		(int) closeIconShape.y + margin, 							// y,
-		        		(int) closeIconShape.width - margin,  						// w,
-		        		(int) (closeIconShape.y + closeIconShape.height - margin));	// h
-		        
-		        g2d.drawLine( (int) closeIconShape.x + margin,						// x,
-		        		(int) (closeIconShape.y + closeIconShape.height - margin), 	// y,
-		        		(int) closeIconShape.width - margin, 						// w,
-		        		(int) closeIconShape.y + margin);							// h
-		    }
-		};
-		closePanel.setBounds(8, 16, 20, 56);
-		closePanel.setBackground(new Color(255, 255, 255, 1));
-		closePanel.setVisible(false);
-		closePanel.addMouseListener(new MouseAdapter() {
-			public void mouseMoved(MouseEvent e) {
-				JOptionPane.showConfirmDialog(null, "Hey!", "woking", JOptionPane.CANCEL_OPTION);
-				closePanel.setVisible(true);
-			}
-			public void mouseEntered(MouseEvent e) {
-				closePanel.setVisible(true);
-			}
-			
-			public void mousePressed(MouseEvent e) {
-				
-				// if clicking the close button
-				if (closeIconShape.contains(e.getPoint())) {
-					System.exit(0);
-					
-				} else {
-					// drags JFrame otherwise
-					redispatchMouseEvent(background, closePanel, e, true);
-				}
-			}
-			public void mouseExited(MouseEvent e) {
-				closePanel.setVisible(false);
-			}
-		});
 		
 		// -------------------------------------------------------------------------
 		
@@ -545,7 +426,7 @@ public class Display {
 		// -------------------------------------------------------------------------
 		
 		Box mainBox = Box.createHorizontalBox();
-		mainBox.setSize(new Dimension(WIDTH + 1, HEIGHT));
+		mainBox.setSize(new Dimension(WIDTH + 6, HEIGHT));
 		mainBox.add(Box.createRigidArea(new Dimension(27, 0)));
 		mainBox.add(mainPanel);
 		
@@ -554,7 +435,6 @@ public class Display {
 		//add components to layeredPane (the higher, the further on the bottom)
 		layeredPane.add(mainBox, BorderLayout.CENTER, 11);
 		layeredPane.add(background, BorderLayout.CENTER, 20);
-		layeredPane.add(closePanel, 21);
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -734,12 +614,17 @@ public class Display {
 	    }
 	}
 	
-	public void setGBC(GridBagConstraints gbc, int x, int y, 
-			double weightx, double weighty, int fill) {
-		gbc.gridx = x;
-		gbc.gridy = y;
-		gbc.weightx = weightx;
-		gbc.weighty = weighty;
-		gbc.fill = fill;
+	/**
+	 * A wrapper for the windowClosing event of Display.
+	 * 
+	 * @param r The runnable interface to run in the windowClosing event.
+	 */
+	public void addWindowCloseListener(Runnable r) {
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				r.run();
+			}
+		});
 	}
 }
