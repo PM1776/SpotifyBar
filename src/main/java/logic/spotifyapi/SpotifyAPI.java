@@ -70,11 +70,10 @@ public class SpotifyAPI {
 	}
 	
 	/**
-	 * Gets an access token for Spotify Web API requests by using the Authorization 
-	 * Code + PKCE flow (connects to Spotify user accounts) to make requests. The 
-	 * Authorization Code flow first asks the Spotify user to grant permissions and
-	 * doesn't finish the flow, so it takes a parameter of Runnable interface 
-	 * <b>init</b> to call its run() method when the flow completes.
+	 * Gets an access token by using the <i>Authorization 
+	 * Code + PKCE</i> flow, which connects to Spotify user accounts to make requests. This 
+	 * flow first asks the user to grant Spotify permissions and calls the run() method
+	 * of the Runnable interface <b>init</b> when the flow completes.
 	 * 
 	 * @param init A Runnable interface to call after the user grants or denies
 	 * permissions.
@@ -163,15 +162,13 @@ public class SpotifyAPI {
 	}
 	
 	/** 
-	 * Returns a Map that has select values of this device on Spotify, with values 
-	 * being the name, id, if active currently, and if private session.
+	 * Returns a JSON String of the active devices on Spotify.
 	 * 
 	 * @apiNote Spotify documentation for end point:
 	 * https://developer.spotify.com/documentation/web-api/reference/#/operations/
 	 * get-a-users-available-devices
-	 * @return A Map object with keys of "name," "id," "active," and "privateSession"
-	 * and values for "name" and "id" as Strings and "active" and "privateSession" 
-	 * as booleans of this device on Spotify.
+	 * @return A String of the JSON response containing the current active devices on 
+	 * Spotify.
 	 */
 	public String getDevices () {
 		
@@ -189,7 +186,7 @@ public class SpotifyAPI {
 	 * or not.
 	 * 
 	 * @param play Can begin the playback transfered if <i>true</i>.
-	 * @param d The <i>Device</i> object to transfer the playback to.
+	 * @param deviceId The <i>Device</i> object id to transfer the playback to.
 	 * @apiNote Spotify documentation for end point:
 	 * https://developer.spotify.com/documentation/web-api/reference/#/operations/
 	 * transfer-a-users-playback

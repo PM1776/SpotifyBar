@@ -182,8 +182,9 @@ public class PictureButtonPanel extends JPanel implements PictureLabelService {
 	}
 	
 	/** 
+	 * Sets the scale the picture is rendered to.
 	 * 
-	 * @param renderingScale Sets the scale the picture is rendered to.
+	 * @param renderingScale The scale of the picture.
 	 */
 	public void setRenderingScale(float scale) {
 		pl.setRenderingScale(scale);
